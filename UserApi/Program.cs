@@ -37,7 +37,7 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:key"]!)),
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
         
         ValidateIssuer =true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
@@ -67,7 +67,6 @@ if(app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
-
 //Maps controller routes to the application.
 app.MapControllers();
 
