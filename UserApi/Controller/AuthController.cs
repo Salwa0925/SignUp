@@ -49,15 +49,9 @@ namespace UserApi;
         } 
 
         [HttpGet("users")]
-    
-            public async Task<IActionResult> GetUsers()
-            {
-                var result =await _userService.GetAllUsers();
-                 
-                return Ok(result.Data);
-            }
-
-    
-   
+        public async Task<IActionResult> GetUsers()
+        {
+            var result = await _userService.GetAllUsers();
+            return Ok(result.Data);
+        }
     }
-

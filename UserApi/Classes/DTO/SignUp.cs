@@ -11,18 +11,18 @@ namespace UserApi;
 public record class SignUpDTO 
 {
     [Required] 
-    [StringLength(15)]
-    public required string UserName {get; init;} 
+    [StringLength(3-15)]
+    public required string UserName {get; init => field = value.ToLowerInvariant();} 
 
     [Required]
-    [EmailAddress]
-    public required string Email {get; init; }
+    [EmailAddress] 
+    public required string Email {get; init => field = value.ToLowerInvariant();}
     
     [Required]
     [MinLength(10)]
     [MaxLength(50)]
     // [RegularExpression] attribute to enforce password complexity rules.
-    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{10,50}$",
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{10,50}$",
     ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.")]
     public required string Password {get; init;} 
 
