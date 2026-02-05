@@ -1,5 +1,6 @@
-
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using UserApi;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +24,31 @@ builder.Services.AddEndpointsApiExplorer();
 //Adds Swagger generation services to the application.
 builder.Services.AddSwaggerGen();
 
+
+// JWT token authentication som kanskje, kanskje ikke vil funke :D
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+        
+        ValidateIssuer =true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+
+        ValidateLifetime = true
+    };
+});
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlite("Data Source=users.db"));
 
@@ -39,7 +65,8 @@ if(app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
+app.UseAuthentication();
+app.UseAuthorization();
 //Maps controller routes to the application.
 app.MapControllers();
 
