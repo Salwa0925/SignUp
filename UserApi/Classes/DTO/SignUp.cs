@@ -11,7 +11,7 @@ namespace UserApi;
 public record class SignUpDTO 
 {
     [Required] 
-    [StringLength(3-15)]
+    [StringLength(15, MinimumLength = 3)]
     public required string UserName {get; init => field = value.ToLowerInvariant();} 
 
     [Required]

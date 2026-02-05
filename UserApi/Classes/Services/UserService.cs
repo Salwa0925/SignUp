@@ -25,7 +25,9 @@ public class UserService(AppDbContext context) : IUserService
         var user = new User
         {
             UserName =dto.UserName,
-            Email = dto.Email
+            Email = dto.Email,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName
             
         };
         user.PasswordHash = _hasher.HashPassword(user, dto.Password);
@@ -59,11 +61,12 @@ public class UserService(AppDbContext context) : IUserService
         var userDTOsList = await context.Users.Select(u => new UserDTO
         {
             Email = u.Email,
-            UserName = u.UserName
+            UserName = u.UserName,
+            FirstName = u.FirstName,
+            LastName = u.LastName
         }).ToListAsync();
 
         return ServiceResult<IEnumerable<UserDTO>>.CreateResult(userDTOsList);
 
     } 
 }
-
