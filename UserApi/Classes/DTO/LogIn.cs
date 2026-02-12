@@ -13,7 +13,7 @@ namespace UserApi;
 /// <param name="Password">
 /// User password. Required for authentication.
 /// </param>
-public record LogInDTO
+public record LogInDTO 
     (
         [Required] string Identifier,
         [Required] string Password
