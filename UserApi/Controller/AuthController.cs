@@ -1,4 +1,5 @@
 using System.Data.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,6 +50,7 @@ namespace UserApi;
         } 
 
         [HttpGet("users")]
+        [Authorize(Roles = nameof(UserRole.Admin))]
         public async Task<IActionResult> GetUsers()
         {
             var result = await _userService.GetAllUsers();

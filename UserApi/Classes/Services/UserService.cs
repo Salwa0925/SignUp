@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ namespace UserApi;
 /// </summary>
 public class UserService(AppDbContext context) : IUserService
 {
-    private readonly PasswordHasher<User> _hasher = new();
+    private readonly PasswordHasher<User> _hasher = new();    
     public async Task<ServiceResult<string>> CreateUser(SignUpDTO dto)
     {
         if (await context.Users.AnyAsync(u => u.Email == dto.Email))
@@ -27,7 +28,8 @@ public class UserService(AppDbContext context) : IUserService
             UserName =dto.UserName,
             Email = dto.Email,
             FirstName = dto.FirstName,
-            LastName = dto.LastName
+            LastName = dto.LastName,
+            Role = UserRole.User
             
         };
         user.PasswordHash = _hasher.HashPassword(user, dto.Password);
@@ -42,8 +44,8 @@ public class UserService(AppDbContext context) : IUserService
     public async Task<ServiceResult<string>> Login(LogInDTO dto)
     {
         var user = await context.Users.FirstOrDefaultAsync(u =>
-            u.Email == dto.Identifier ||
-            u.UserName == dto.Identifier);
+            u.Email == dto.Identifier.ToLower() ||
+            u.UserName == dto.Identifier.ToLower());
 
         if (user is null)
             return ServiceResult<string>.CreateFailure("Invalid credentials");
