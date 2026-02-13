@@ -27,6 +27,11 @@ namespace UserApi.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("EmailConfirmationToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("INTEGER");
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("TEXT");

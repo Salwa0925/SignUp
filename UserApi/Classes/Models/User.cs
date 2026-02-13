@@ -15,6 +15,8 @@ public class User
     public required string LastName {get; set;}
     public UserRole Role {get; set;} = UserRole.User;
     public string PasswordHash {get; set;} =string.Empty;
+    public bool EmailConfirmed { get; set; } = false;
+    public string? EmailConfirmationToken { get; set; }
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     
 }

@@ -13,6 +13,11 @@ builder.Services.AddControllers();
 
 builder.Services.AddScoped<IUserService, UserService>();
 
+//Tells the dependency to give "ConsoleEmailService to whatever asks for "IEmailservice". Change this for a real emailservice later.
+builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
+
+
+//Adds support for API endpoint exploration and Swagger generation.
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();
