@@ -2,10 +2,11 @@ using System;
 
 namespace UserApi;
 
-public class UserDTO
+public record class UserDTO
 {
-    public  string? UserName {get; init;}
-    public string? Email { get; init; }
+    public required string UserName {get; init;} = default!;
+    public required string Email { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
 
 }
- 

@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Security.Claims;
@@ -18,7 +19,7 @@ namespace UserApi;
 public class UserService(AppDbContext context, IConfiguration configuration, IEmailService emailService) : IUserService
 
 {
-    private readonly PasswordHasher<User> _hasher = new();
+    private readonly PasswordHasher<User> _hasher = new();    
     public async Task<ServiceResult<string>> CreateUser(SignUpDTO dto)
     {
         if (await context.Users.AnyAsync(u => u.Email == dto.Email))
@@ -32,6 +33,9 @@ public class UserService(AppDbContext context, IConfiguration configuration, IEm
             UserName =dto.UserName,
             Email = dto.Email,
             EmailConfirmationToken = Guid.NewGuid().ToString()
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Role = UserRole.User
             
         };
         user.PasswordHash = _hasher.HashPassword(user, dto.Password);
@@ -48,8 +52,8 @@ public class UserService(AppDbContext context, IConfiguration configuration, IEm
     public async Task<ServiceResult<string>> Login(LogInDTO dto)
     {
         var user = await context.Users.FirstOrDefaultAsync(u =>
-            u.Email == dto.Identifier ||
-            u.UserName == dto.Identifier);
+            u.Email == dto.Identifier.ToLower() ||
+            u.UserName == dto.Identifier.ToLower());
 
         if (user is null)
             return ServiceResult<string>.CreateFailure("Invalid credentials");
@@ -72,7 +76,9 @@ public class UserService(AppDbContext context, IConfiguration configuration, IEm
         var userDTOsList = await context.Users.Select(u => new UserDTO
         {
             Email = u.Email,
-            UserName = u.UserName
+            UserName = u.UserName,
+            FirstName = u.FirstName,
+            LastName = u.LastName
         }).ToListAsync();
 
         return ServiceResult<IEnumerable<UserDTO>>.CreateResult(userDTOsList);
@@ -120,4 +126,3 @@ public class UserService(AppDbContext context, IConfiguration configuration, IEm
     }
 
 }
-
