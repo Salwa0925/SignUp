@@ -1,6 +1,8 @@
 using System.Data.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
 
 
 
@@ -48,6 +50,7 @@ namespace UserApi;
             return Ok(result.Data);
         } 
 
+        [Authorize]
         [HttpGet("users")]
     
             public async Task<IActionResult> GetUsers()
@@ -56,6 +59,17 @@ namespace UserApi;
                  
                 return Ok(result.Data);
             }
+
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] string token)
+        {
+            var result = await _userService.ConfirmEmail(token);
+
+            if (!result.Success)
+                return BadRequest(result.ErrorMessage);
+
+            return Ok(result.Data);
+        }
 
     
    

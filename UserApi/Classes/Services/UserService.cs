@@ -1,7 +1,11 @@
 using System;
 using System.Linq;
+using System.Text;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace UserApi;
@@ -11,7 +15,8 @@ namespace UserApi;
 ///  Provides methods to create users and authenticate them.
 ///  checks for existing emails and usernames to prevent duplicates.
 /// </summary>
-public class UserService(AppDbContext context) : IUserService
+public class UserService(AppDbContext context, IConfiguration configuration, IEmailService emailService) : IUserService
+
 {
     private readonly PasswordHasher<User> _hasher = new();
     public async Task<ServiceResult<string>> CreateUser(SignUpDTO dto)
@@ -25,7 +30,8 @@ public class UserService(AppDbContext context) : IUserService
         var user = new User
         {
             UserName =dto.UserName,
-            Email = dto.Email
+            Email = dto.Email,
+            EmailConfirmationToken = Guid.NewGuid().ToString()
             
         };
         user.PasswordHash = _hasher.HashPassword(user, dto.Password);
@@ -33,8 +39,10 @@ public class UserService(AppDbContext context) : IUserService
         await context.Users.AddAsync(user);
         await context.SaveChangesAsync();
 
+        await emailService.SendConfirmationEmail(user.Email, user.EmailConfirmationToken);
 
-        return ServiceResult<string>.CreateResult("User created");
+
+        return ServiceResult<string>.CreateResult("User created. Please check your email to confirm your account.");
     }
 
     public async Task<ServiceResult<string>> Login(LogInDTO dto)
@@ -51,7 +59,12 @@ public class UserService(AppDbContext context) : IUserService
         if (result == PasswordVerificationResult.Failed)
             return ServiceResult<string>.CreateFailure("Invalid credentials");
 
-        return ServiceResult<string>.CreateResult("Welcome back");
+        if (!user.EmailConfirmed)
+            return ServiceResult<string>.CreateFailure("Please confirm your email before logging in");
+
+
+        var token = GenerateJwtToken(user);
+        return ServiceResult<string>.CreateResult(token);
     }
 
     public async Task<ServiceResult<IEnumerable<UserDTO>>> GetAllUsers()
@@ -64,6 +77,47 @@ public class UserService(AppDbContext context) : IUserService
 
         return ServiceResult<IEnumerable<UserDTO>>.CreateResult(userDTOsList);
 
-    } 
+    }
+
+    private string GenerateJwtToken(User user)
+    {
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var expireMinutes = int.Parse(configuration["Jwt:ExpireMinutes"] ?? "60");
+
+        var token = new JwtSecurityToken(
+            issuer: configuration["Jwt:Issuer"],
+            audience: configuration["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(expireMinutes),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+        public async Task<ServiceResult<string>> ConfirmEmail(string token)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(u => u.EmailConfirmationToken == token);
+
+        if (user is null)
+            return ServiceResult<string>.CreateFailure("Invalid confirmation token");
+
+        user.EmailConfirmed = true;
+        user.EmailConfirmationToken = null;
+        await context.SaveChangesAsync();
+
+        return ServiceResult<string>.CreateResult("Email confirmed successfully");
+    }
+
 }
 

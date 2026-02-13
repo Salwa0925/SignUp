@@ -11,11 +11,14 @@ namespace UserApi;
 /// </summary>
     public interface IUserService 
     {
-       Task<ServiceResult<string>> CreateUser(SignUpDTO dto);
-       Task<ServiceResult<string>> Login(LogInDTO dto);
+        Task<ServiceResult<string>> CreateUser(SignUpDTO dto);
+        Task<ServiceResult<string>> Login(LogInDTO dto);
         Task<ServiceResult<IEnumerable<UserDTO>>> GetAllUsers();
+        Task<ServiceResult<string>> ConfirmEmail(string token);
+
         
     }
+
 
  
 

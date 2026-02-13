@@ -12,5 +12,7 @@ public class User
     public required string UserName {get; set;}
     public required string Email {get; set;}
     public string PasswordHash {get; set;} =string.Empty;
+    public bool EmailConfirmed { get; set; } = false;
+    public string? EmailConfirmationToken { get; set; }
     
 }
